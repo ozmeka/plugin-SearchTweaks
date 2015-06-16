@@ -20,8 +20,12 @@ class SearchTweaksPlugin extends Omeka_Plugin_AbstractPlugin
 	public function hookAdminItemsSearch($args)
     {
         $view = $args['view'];
-		$view->subjects = $this->listSubjects();
-        echo $view->partial('search-subject-partial.php');
+		
+        echo $view->partial('search-subject-partial.php', array(
+									'subjects' => $this->listSubjects(),
+									'subject_element_id' => $this->getDcSubjectId(),
+									'subject_match_type' => 'contains',
+		));
 	}
 
     public function hookPublicItemsSearch($args)
@@ -38,7 +42,7 @@ class SearchTweaksPlugin extends Omeka_Plugin_AbstractPlugin
 	public function getDcSubjectId()
 	{
 		$db = get_db();
-		$select = "
+		$sql = "
 			SELECT	e.id
 			FROM	{$db->Elements} e
 			WHERE	e.name = 'Subject'
@@ -48,14 +52,14 @@ class SearchTweaksPlugin extends Omeka_Plugin_AbstractPlugin
 				WHERE es.name = 'Dublin Core'
 			)";
 		
-		$result = $db->fetchOne($select);
+		$result = $db->fetchOne($sql);
 		return $result;
 	}
 	
 	public function listSubjects()
 	{
 		$db = get_db();
-		$select = "
+		$sql = "
 			SELECT DISTINCT et.text
 			FROM {$db->ElementTexts} et
 			JOIN {$db->Elements} e
@@ -68,7 +72,7 @@ class SearchTweaksPlugin extends Omeka_Plugin_AbstractPlugin
 			)
 			ORDER BY et.text";
 		
-		$result = $db->fetchAll($select);
+		$result = $db->fetchAll($sql);
 
 		$subjects = array('' => 'Select Below');
 		foreach ($result as $row)
